@@ -34,6 +34,12 @@ This source file is part of the
 #include <SdkTrays.h>
 #include <SdkCameraMan.h>
 
+#include "MessageIdentifiers.h"
+#include "RakPeerInterface.h"
+#include "RakNetworkFactory.h"
+#include "RakNetTypes.h"
+#include "BitStream.h"
+
 class BaseApplication : public Ogre::FrameListener, public Ogre::WindowEventListener, public OIS::KeyListener, public OIS::MouseListener, OgreBites::SdkTrayListener
 {
 public:
@@ -41,6 +47,13 @@ public:
     virtual ~BaseApplication(void);
 
     virtual void go(void);
+
+    RakPeerInterface *peer;
+    Packet *packet;
+    RakNet::RakString rs;
+    bool connected;
+    int int_message;
+    RakNet::BitStream bsOut;
 
 protected:
     virtual bool setup();
@@ -90,6 +103,7 @@ protected:
     OIS::InputManager* mInputManager;
     OIS::Mouse*    mMouse;
     OIS::Keyboard* mKeyboard;
+
 };
 
 #endif // #ifndef __BaseApplication_h_

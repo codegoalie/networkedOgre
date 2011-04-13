@@ -4,4 +4,4 @@
 
 USER_OBJS :=
 
-LIBS := -lOgreMain -lOIS
+LIBS := -lOgreMain -lRakNetDynamic -lOIS

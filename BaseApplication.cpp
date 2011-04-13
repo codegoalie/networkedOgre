@@ -16,6 +16,12 @@ This source file is part of the
 */
 #include "BaseApplication.h"
 
+enum GameMessages
+{
+  SPAWN_POSITION=ID_USER_PACKET_ENUM+1,
+  POSITION_UPDATE=ID_USER_PACKET_ENUM+2,
+  YOUR_TURN=ID_USER_PACKET_ENUM+3
+};
 //-------------------------------------------------------------------------------------
 BaseApplication::BaseApplication(void)
     : mRoot(0),
@@ -264,6 +270,40 @@ bool BaseApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
             mDetailsPanel->setParamValue(6, Ogre::StringConverter::toString(mCamera->getDerivedOrientation().y));
             mDetailsPanel->setParamValue(7, Ogre::StringConverter::toString(mCamera->getDerivedOrientation().z));
         }
+    }
+
+    for (packet=peer->Receive(); 
+        packet; 
+        peer->DeallocatePacket(packet), packet=peer->Receive())
+    {
+      RakNet::BitStream bsIn(packet->data,packet->length,false);
+      bsIn.IgnoreBytes(sizeof(MessageID));
+      bsIn.Read(int_message);
+      Ogre::Vector3 current_position = mCamera->getPosition();
+
+      switch (packet->data[0])
+      {
+        case SPAWN_POSITION:
+          std::cout << "Server said I'm client number " << int_message << std::endl;
+          break;
+        case ID_CONNECTION_REQUEST_ACCEPTED:
+          connected = true;
+          break;
+        case POSITION_UPDATE:
+          // received new position of other player from server
+          std::cout << "Server said we are now at " << int_message << std::endl;
+          mCamera->setPosition(Ogre::Vector3(current_position.x + int_message, 100,400));
+          break;
+        case YOUR_TURN:
+          printf("My Turn. Sending message.\n");
+          bsOut.Write((MessageID)POSITION_UPDATE);
+          peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,packet->systemAddress,false);
+          break;
+        default:
+          printf("Message with identifier %i has arrived.\n", packet->data[0]);
+          break;
+      }
+      bsOut.Reset();
     }
 
     return true;

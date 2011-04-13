@@ -16,6 +16,15 @@ This source file is part of the
 */
 #include "TutorialApplication.h"
 
+#include "MessageIdentifiers.h"
+#include "RakPeerInterface.h"
+#include "RakNetworkFactory.h"
+#include "RakNetTypes.h"
+#include "BitStream.h"
+
+// RakNet Default
+#define SERVER_PORT 60000
+
 //-------------------------------------------------------------------------------------
 TutorialApplication::TutorialApplication(void)
 {
@@ -73,6 +82,22 @@ extern "C" {
     {
         // Create application object
         TutorialApplication app;
+
+        char str[512];
+        app.connected = false;
+        app.peer = RakNetworkFactory::GetRakPeerInterface();
+
+        app.peer->Startup(1,30,&SocketDescriptor(), 1);
+        //printf("Enter server IP or hit enter for 127.0.0.1\n");
+        //gets(str);
+        //if (str[0]==0){
+          strcpy(str, "127.0.0.1");
+        //}
+        printf("Starting the client.\n");
+        app.peer->Connect(str, SERVER_PORT, 0,0);
+
+
+
 
         try {
             app.go();

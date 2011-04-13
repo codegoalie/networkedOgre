@@ -26,6 +26,7 @@
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1356283777" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.710574288" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="/usr/local/include/OGRE"/>
+<listOptionValue builtIn="false" value="/home/chrismar035/ogre/raknet/include/raknet"/>
 <listOptionValue builtIn="false" value="/usr/include/OIS/"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.722446632" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -37,9 +38,12 @@
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1237493352" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.621940000" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
-<option id="gnu.cpp.link.option.paths.1027698815" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths"/>
-<option id="gnu.cpp.link.option.libs.848119070" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<option id="gnu.cpp.link.option.paths.1027698815" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+<listOptionValue builtIn="false" value="/home/chrismar035/ogre/raknet/Lib/DLL"/>
+</option>
+<option id="gnu.cpp.link.option.libs.848119070" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="OgreMain"/>
+<listOptionValue builtIn="false" value="RakNetDynamic"/>
 <listOptionValue builtIn="false" value="OIS"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.811750449" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">

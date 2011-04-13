@@ -19,14 +19,22 @@ This source file is part of the
 
 #include "BaseApplication.h"
 
+#include "MessageIdentifiers.h"
+#include "RakPeerInterface.h"
+#include "RakNetworkFactory.h"
+#include "RakNetTypes.h"
+#include "BitStream.h"
+
+
 class TutorialApplication : public BaseApplication
 {
-public:
+  public:
     TutorialApplication(void);
     virtual ~TutorialApplication(void);
 
-protected:
-    virtual void createScene(void);
+
+  protected:
+      virtual void createScene(void);
 };
 
 #endif // #ifndef __TutorialApplication_h_
