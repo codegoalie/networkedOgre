@@ -28,8 +28,30 @@ TutorialApplication::~TutorialApplication(void)
 //-------------------------------------------------------------------------------------
 void TutorialApplication::createScene(void)
 {
-    // create your scene here :)
+  // create your scene here :)
+  Ogre::Entity* ogreHead = mSceneMgr->createEntity("Head", "ogrehead.mesh");
 
+  Ogre::SceneNode* headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+  headNode->attachObject(ogreHead);
+
+
+  // Create a light
+  Ogre::Light* l = mSceneMgr->createLight("MainLight");
+  l->setPosition(20,80,50);
+
+  Ogre::Entity *ent;
+  Ogre::Plane p;
+  p.normal = Ogre::Vector3(0,1,0); p.d = 0;
+  Ogre::MeshManager::getSingleton().createPlane("FloorPlane",
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+      p, 200000, 200000, 20, 20, true, 1, 9000, 9000,
+      Ogre::Vector3::UNIT_Z);
+  // Create an entity (the floor)
+  ent = mSceneMgr->createEntity("floor", "FloorPlane");
+  ent->setMaterialName("Examples/BeachStones");
+  mSceneMgr->getRootSceneNode()->createChildSceneNode()->attachObject(ent);
+  // Set ambient light
+  mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5, 0.5, 0.5));
 }
 
 
