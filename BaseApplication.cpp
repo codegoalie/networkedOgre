@@ -20,7 +20,8 @@ enum GameMessages
 {
   SPAWN_POSITION=ID_USER_PACKET_ENUM+1,
   POSITION_UPDATE=ID_USER_PACKET_ENUM+2,
-  YOUR_TURN=ID_USER_PACKET_ENUM+3
+  YOUR_TURN=ID_USER_PACKET_ENUM+3,
+  NEW_CLIENT=ID_USER_PACKET_ENUM+4
 };
 //-------------------------------------------------------------------------------------
 BaseApplication::BaseApplication(void)
@@ -278,27 +279,85 @@ bool BaseApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
     {
       RakNet::BitStream bsIn(packet->data,packet->length,false);
       bsIn.IgnoreBytes(sizeof(MessageID));
-      bsIn.Read(int_message);
+
       Ogre::Vector3 current_position = mCamera->getPosition();
+      Ogre::Entity* ogreHead;
+      Ogre::SceneNode* headNode;
+      Ogre::Node* clientNode;
+      int other_client_id;
+      int x, y ,z;
+      Ogre::String node_name;
+      Ogre::stringstream out;
 
       switch (packet->data[0])
       {
         case SPAWN_POSITION:
-          std::cout << "Server said I'm client number " << int_message << std::endl;
+        	 bsIn.Read(client_id);
+        	 bsIn.Read(x);
+        bsIn.Read(y);
+        bsIn.Read(z);
+          printf("Server said I'm client number %d at %d,%d,%d\n",client_id, x,y,z);
+
+          mCamera->setPosition(Ogre::Vector3(x, y, z));
           break;
         case ID_CONNECTION_REQUEST_ACCEPTED:
           connected = true;
           break;
         case POSITION_UPDATE:
           // received new position of other player from server
-          std::cout << "Server said we are now at " << int_message << std::endl;
-          mCamera->setPosition(Ogre::Vector3(current_position.x + int_message, 100,400));
+          bsIn.Read(other_client_id);
+          bsIn.Read(x);
+          bsIn.Read(y);
+          bsIn.Read(z);
+          printf("Server said %d is now at %d,%d,%d", other_client_id, x, y, z);
+
+          // try to update node position. If id doesn't exist, create it
+          node_name = "Client_node_";
+          out << other_client_id;
+          node_name.append(out.str());
+          std::cout << "\nGoing to update/create: " << node_name << std::endl;
+          if(mSceneMgr->hasSceneNode(node_name))
+          {
+        	  clientNode = mSceneMgr->getRootSceneNode()->getChild(node_name);
+        	  std::cout << "\nUpdating position of " <<  node_name << "...";
+        	  clientNode->setPosition(Ogre::Vector3(x,y,z));
+        	  std::cout << "done\n";
+          }
+          else
+          {
+        	  std::cout << "\n" << node_name << " not found, skipping it" << std::endl;
+        	  //headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode(node_name);
+        	  //headNode->setPosition(Ogre::Vector3(x, y, z));
+        	  //headNode->attachObject(ogreHead);
+          }
           break;
         case YOUR_TURN:
-          printf("My Turn. Sending message.\n");
+          x = (int)current_position.x;
+          y = (int)current_position.y;
+          z = (int)current_position.z;
+          printf("My Turn(%d). Sending my position: %d,%d,%d.\n", client_id, x, y,z);
           bsOut.Write((MessageID)POSITION_UPDATE);
+          bsOut.Write(client_id);
+          bsOut.Write(x);
+          bsOut.Write(y);
+          bsOut.Write(z);
           peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,packet->systemAddress,false);
           break;
+        case NEW_CLIENT:
+
+        	 bsIn.Read(other_client_id);
+        	 bsIn.Read(x);
+        	 bsIn.Read(y);
+        	 bsIn.Read(z);
+        	 printf("Received new client info for %d: %d,%d,%d", other_client_id, x,y,z);
+        	ogreHead = mSceneMgr->createEntity("Client_" + other_client_id, "ogrehead.mesh");
+        	node_name = "Client_node_";
+        	out << other_client_id;
+        	node_name.append(out.str());
+        	std::cout << std::endl << "Creating " << node_name << std::endl;
+        	headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode(node_name);
+        	headNode->setPosition(Ogre::Vector3(x, y, z));
+        	headNode->attachObject(ogreHead);
         default:
           printf("Message with identifier %i has arrived.\n", packet->data[0]);
           break;

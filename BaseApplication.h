@@ -52,7 +52,7 @@ public:
     Packet *packet;
     RakNet::RakString rs;
     bool connected;
-    int int_message;
+    int int_message, client_id;
     RakNet::BitStream bsOut;
 
 protected:
