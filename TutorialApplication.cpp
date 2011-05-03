@@ -43,6 +43,24 @@ void TutorialApplication::createScene(void)
   Ogre::SceneNode* headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
   headNode->attachObject(ogreHead);
 
+  for (int i = 0; i < 10; ++i) {
+    Ogre::String node_name, entity_name;
+    Ogre::stringstream out;
+    node_name = "Client_node_";
+    entity_name = "Head_";
+    out << i;
+    node_name.append(out.str());
+    entity_name.append(out.str());
+    Ogre::Entity* ogreHead = mSceneMgr->createEntity(entity_name, "ogrehead.mesh");
+
+    Ogre::SceneNode* headNode = 
+      mSceneMgr->getRootSceneNode()->createChildSceneNode(node_name);
+    headNode->attachObject(ogreHead);
+    headNode->setVisible(false);
+  }
+
+
+
 
   // Create a light
   Ogre::Light* l = mSceneMgr->createLight("MainLight");

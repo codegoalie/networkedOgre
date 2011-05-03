@@ -273,6 +273,8 @@ bool BaseApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
         }
     }
 
+    int x, y ,z;
+
     for (packet=peer->Receive(); 
         packet; 
         peer->DeallocatePacket(packet), packet=peer->Receive())
@@ -280,25 +282,25 @@ bool BaseApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
       RakNet::BitStream bsIn(packet->data,packet->length,false);
       bsIn.IgnoreBytes(sizeof(MessageID));
 
-      Ogre::Vector3 current_position = mCamera->getPosition();
       Ogre::Entity* ogreHead;
-      Ogre::SceneNode* headNode;
+      //Ogre::SceneNode* headNode;
       Ogre::Node* clientNode;
       int other_client_id;
-      int x, y ,z;
       Ogre::String node_name;
       Ogre::stringstream out;
 
       switch (packet->data[0])
       {
         case SPAWN_POSITION:
-        	 bsIn.Read(client_id);
-        	 bsIn.Read(x);
-        bsIn.Read(y);
-        bsIn.Read(z);
+          bsIn.Read(client_id);
+          bsIn.Read(x);
+          bsIn.Read(y);
+          bsIn.Read(z);
           printf("Server said I'm client number %d at %d,%d,%d\n",client_id, x,y,z);
 
           mCamera->setPosition(Ogre::Vector3(x, y, z));
+
+          server_address = packet->systemAddress;
           break;
         case ID_CONNECTION_REQUEST_ACCEPTED:
           connected = true;
@@ -318,51 +320,67 @@ bool BaseApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
           std::cout << "\nGoing to update/create: " << node_name << std::endl;
           if(mSceneMgr->hasSceneNode(node_name))
           {
-        	  clientNode = mSceneMgr->getRootSceneNode()->getChild(node_name);
-        	  std::cout << "\nUpdating position of " <<  node_name << "...";
-        	  clientNode->setPosition(Ogre::Vector3(x,y,z));
-        	  std::cout << "done\n";
+            clientNode = mSceneMgr->getRootSceneNode()->getChild(node_name);
+            std::cout << "\nUpdating position of " <<  node_name << "...";
+            clientNode->setPosition(Ogre::Vector3(x,y,z));
+            std::cout << "done\n";
           }
           else
           {
-        	  std::cout << "\n" << node_name << " not found, skipping it" << std::endl;
-        	  //headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode(node_name);
-        	  //headNode->setPosition(Ogre::Vector3(x, y, z));
-        	  //headNode->attachObject(ogreHead);
+            std::cout << "\n" << node_name << " not found, skipping it" << std::endl;
+            //headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode(node_name);
+            //headNode->setPosition(Ogre::Vector3(x, y, z));
+            //headNode->attachObject(ogreHead);
           }
           break;
         case YOUR_TURN:
-          x = (int)current_position.x;
-          y = (int)current_position.y;
-          z = (int)current_position.z;
-          printf("My Turn(%d). Sending my position: %d,%d,%d.\n", client_id, x, y,z);
-          bsOut.Write((MessageID)POSITION_UPDATE);
-          bsOut.Write(client_id);
-          bsOut.Write(x);
-          bsOut.Write(y);
-          bsOut.Write(z);
-          peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,packet->systemAddress,false);
           break;
         case NEW_CLIENT:
-
-        	 bsIn.Read(other_client_id);
-        	 bsIn.Read(x);
-        	 bsIn.Read(y);
-        	 bsIn.Read(z);
-        	 printf("Received new client info for %d: %d,%d,%d", other_client_id, x,y,z);
-        	ogreHead = mSceneMgr->createEntity("Client_" + other_client_id, "ogrehead.mesh");
-        	node_name = "Client_node_";
-        	out << other_client_id;
-        	node_name.append(out.str());
-        	std::cout << std::endl << "Creating " << node_name << std::endl;
-        	headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode(node_name);
-        	headNode->setPosition(Ogre::Vector3(x, y, z));
-        	headNode->attachObject(ogreHead);
+          bsIn.Read(other_client_id);
+          bsIn.Read(x);
+          bsIn.Read(y);
+          bsIn.Read(z);
+          printf("Received new client info for %d: %d,%d,%d", other_client_id, x,y,z);
+          //ogreHead = mSceneMgr->createEntity("Client_" + other_client_id, "ogrehead.mesh");
+          node_name = "Client_node_";
+          out << other_client_id;
+          node_name.append(out.str());
+          std::cout << std::endl << "Toggling visibility for " << 
+            node_name << std::endl;
+          
+          if(mSceneMgr->hasSceneNode(node_name))
+          {
+            mSceneMgr->getSceneNode(node_name)->setVisible(true);
+          }
+          else
+          {
+            std::cout << "\n" << node_name << " not found, skipping it" << std::endl;
+            //headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode(node_name);
+            //headNode->setPosition(Ogre::Vector3(x, y, z));
+            //headNode->attachObject(ogreHead);
+          }
         default:
           printf("Message with identifier %i has arrived.\n", packet->data[0]);
           break;
       }
       bsOut.Reset();
+    }
+    
+    if( current_position != mCamera->getPosition() && connected )
+    {
+      current_position = mCamera->getPosition();
+      x = (int)current_position.x;
+      y = (int)current_position.y;
+      z = (int)current_position.z;
+      printf("I am %d. Sending my position: %d,%d,%d.\n", client_id, x, y, z);
+      bsOut.Reset();
+      bsOut.Write((MessageID)POSITION_UPDATE);
+      bsOut.Write(client_id);
+      bsOut.Write(x);
+      bsOut.Write(y);
+      bsOut.Write(z);
+      peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,server_address,false);
+
     }
 
     return true;

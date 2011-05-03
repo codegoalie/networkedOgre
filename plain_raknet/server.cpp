@@ -35,10 +35,11 @@ int main(void)
   RakNet::RakString rs;
 
   std::vector<RakNetGUID> clients;
-  int current_client = 0;
+  std::vector<int> x_pos, y_pos, z_pos;
+  //int current_client = 0;
   int sleep_time = 0;
 
-  int counter = 0;
+  //int counter = 0;
 
   while (1)
   {
@@ -53,7 +54,7 @@ int main(void)
       std::cout << "Client List:\n";
       for(int i=0; i < (int)clients.size(); ++i)
       {
-        std::cout << i+1 << " - " << clients[i].g << std::endl;
+        std::cout << i << " - " << clients[i].g << std::endl;
       }
       std::cout << "\n\nNew Packet from:" 
         << packet->guid.g << std::endl;
@@ -80,37 +81,57 @@ int main(void)
             std::cout << "Sending new spawn position to each client\n";
             bsOut.Reset();
             bsOut.Write((MessageID)NEW_CLIENT);
-            bsOut.Write((int)clients.size()+1);
+            bsOut.Write((int)clients.size());
             bsOut.Write(20);
             bsOut.Write(20);
             bsOut.Write(10);
             for(int i=0; i < (int)clients.size(); ++i)
             {
-              std::cout << "  To: " << i+1 << " - " << clients[i].g << std::endl;
+              std::cout << "  To: " << i << " - " << clients[i].g << std::endl;
               peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,
                  peer->GetSystemAddressFromGuid(clients[i]),false);
             }
             bsOut.Reset();
+
+            std::cout << "Sending each client's position to new client\n";
+            for (int i = 0; i < (int)clients.size(); ++i) {
+              std::cout << "sending for " << i << std::endl;
+              bsOut.Reset();
+              bsOut.Write((MessageID)NEW_CLIENT);
+              bsOut.Write(i);
+              bsOut.Write(x_pos[i]);
+              bsOut.Write(y_pos[i]);
+              bsOut.Write(z_pos[i]);
+              peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,
+                  packet->systemAddress,false);
+            }
           }
           else
           {
-            std::cout << "No other clients to send spawn position\n";
+            std::cout << "No clients yet, didn't send spawn pos to existing " <<
+              "nor each existing pos to new\n";
           }
 
-          // Add client to 
+          // Add client 
           clients.push_back(packet->guid);
+          x_pos.push_back(20);
+          y_pos.push_back(20);
+          z_pos.push_back(10);
           // Use a BitStream to write a custom user message
           // Bitstreams are easier to use than sending casted structures, and handle endian swapping automatically
+          bsOut.Reset();
           bsOut.Write((MessageID)SPAWN_POSITION);
-          bsOut.Write((int)clients.size());
+          bsOut.Write((int)clients.size()-1);
           bsOut.Write(20);
           bsOut.Write(20);
           bsOut.Write(10);
           peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,packet->systemAddress,false);
           bsOut.Reset();
+          /*
           sleep(sleep_time);
           bsOut.Write((MessageID)YOUR_TURN);
           peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,packet->systemAddress,false);
+          */
           break;
         case ID_DISCONNECTION_NOTIFICATION:
           printf("A client has disconnected.\n");
@@ -120,12 +141,15 @@ int main(void)
           break;
         case POSITION_UPDATE:
           // received new position from client
-          ++counter;
           bsIn.Read(client_id);
           bsIn.Read(x);
           bsIn.Read(y);
           bsIn.Read(z);
           printf("Client %d sent new position %d,%d,%d\n", client_id, x,y,z);
+          // save to vectors
+          x_pos[client_id] = x;
+          y_pos[client_id] = y;
+          z_pos[client_id] = z;
           std::cout << "Sending new position value to each client\n";
           bsOut.Reset();
           bsOut.Write((MessageID)POSITION_UPDATE);
@@ -135,9 +159,9 @@ int main(void)
           bsOut.Write(z);
           for(int i=0; i < (int)clients.size(); ++i)
           {
-            if(client_id != i+1)
+            if(client_id != i)
             {
-              std::cout << "  To: " << i+1 << " - " << clients[i].g << std::endl;
+              std::cout << "  To: " << i << " - " << clients[i].g << std::endl;
               peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,
                  peer->GetSystemAddressFromGuid(clients[i]),false);
             }
@@ -148,6 +172,7 @@ int main(void)
           }
           sleep(sleep_time);
           bsOut.Reset();
+          /*
           bsOut.Write((MessageID)YOUR_TURN);
           packet->systemAddress = 
             peer->GetSystemAddressFromGuid(clients[current_client]);
@@ -156,6 +181,7 @@ int main(void)
           else
             ++current_client;
           peer->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,packet->systemAddress,false);
+          */
           break;
         default:
           printf("Message with identifier %i has arrived.\n", packet->data[0]);

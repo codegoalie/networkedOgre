@@ -51,6 +51,8 @@ public:
     RakPeerInterface *peer;
     Packet *packet;
     RakNet::RakString rs;
+    SystemAddress server_address;
+    Ogre::Vector3 current_position;
     bool connected;
     int int_message, client_id;
     RakNet::BitStream bsOut;
