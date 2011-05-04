@@ -20,6 +20,14 @@ enum GameMessages
 	NEW_CLIENT=ID_USER_PACKET_ENUM+4
 };
 
+class Client {
+  public:
+    int id, x, y, z;
+    RakNetGUID guid;
+
+    Client(int passed_id) :id(passed_id) { }
+};
+
 int main(void)
 {
 	RakPeerInterface *peer = RakNetworkFactory::GetRakPeerInterface();
