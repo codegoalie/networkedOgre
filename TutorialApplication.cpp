@@ -38,7 +38,7 @@ TutorialApplication::~TutorialApplication(void)
 void TutorialApplication::createScene(void)
 {
   // create your scene here :)
-  Ogre::Entity* ogreHead = mSceneMgr->createEntity("Head", "ogrehead.mesh");
+  Ogre::Entity* ogreHead = mSceneMgr->createEntity("Head", "cube.mesh");
 
   Ogre::SceneNode* headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
   headNode->attachObject(ogreHead);
